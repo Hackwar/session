@@ -133,6 +133,21 @@ class MemcachedHandlerTest extends TestCase
         $this->assertTrue($this->handler->destroy('id'));
     }
 
+    public function testTheHandlerDestroysASessionThatWasNeverWritten()
+    {
+        $this->assertTrue($this->handler->destroy('never-written-' . bin2hex(random_bytes(8))));
+    }
+
+    public function testTheHandlerKeepsDataWithoutExpiryWhenTheTtlIsZero()
+    {
+        $handler = new MemcachedHandler($this->memcached, ['prefix' => 'jfwtest_', 'ttl' => 0]);
+
+        $this->assertTrue($handler->write('no-expiry', 'data'));
+        $this->assertSame('data', $handler->read('no-expiry'));
+
+        $handler->destroy('no-expiry');
+    }
+
     /**
      * @covers  Joomla\Session\Handler\MemcachedHandler
      */
